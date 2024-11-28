@@ -33,6 +33,7 @@ namespace lab5_2
     public class Logger
     {
         static Mutex mutex = new Mutex(false);
+        static Mutex mutex22 = new Mutex(false);
         static Logger(){
             FileStream fs = new FileStream("log_times.txt", FileMode.Create, FileAccess.Write, FileShare.ReadWrite);
             fs.Close();
@@ -40,16 +41,20 @@ namespace lab5_2
 
         static public void ClearFileRec()
         {
+            mutex22.WaitOne();
             FileStream fs = new FileStream("log_times.txt", FileMode.Create, FileAccess.Write, FileShare.ReadWrite);
             fs.Close();
+            mutex22.ReleaseMutex();
         }
 
         static public void WriteToF(string text)
         {
+            mutex.WaitOne();
             using (FileStream file = new FileStream("log_times.txt", FileMode.Append, FileAccess.Write, FileShare.ReadWrite))
             using (StreamWriter sw = new StreamWriter(file)){
                 sw.Write($"{text}\n");
             }
+            mutex.ReleaseMutex();
         }
     }
 
@@ -85,7 +90,7 @@ namespace lab5_2
         List<Task<long>> tasks = null;
         static Mutex mutexSync = new Mutex(false);
         static Mutex mutex = new Mutex(false);
-
+        static int ended = -1;
         static int s = -1;//каунтер кількості потоків які почали роботу та готові виконувати запис
 
         ObservableData<Triple> liveData = new ObservableData<Triple>();
@@ -128,7 +133,7 @@ namespace lab5_2
             int temp_count = count;
             s = temp_count; //передаємо повну кількість потоків які будуть створені
             tasks = new List<Task<long>>();
-
+            ended = temp_count;
             for (int i = 0; i < count; i++)
             {
                 int num = i;
@@ -136,7 +141,9 @@ namespace lab5_2
                 tasks.Add(new Task<long>(() => WriteToFileThread(num + 1)));
                 tasks[i].ContinueWith(t => {
                     liveData.Value = new Triple(num, "completed", t.Result);
+                    ended--;
                 });
+
             }
 
             for (int i = 0; i < count; i++)
@@ -145,6 +152,12 @@ namespace lab5_2
                 int num = i;
                 liveData.Value = new Triple(num, "waiting sync start", -1);
             }
+
+            Task.Run(() =>
+            {
+                SpinWait.SpinUntil(() => ended == 0);
+                Application.Current.Dispatcher.Invoke(() => launchButton.IsEnabled = true);
+            });
 
             // по суті тепер всі потоки запускаються одночасно і порядок запису в файл корректний, як і очікувалося
             Task.Run(() => // алгоритм який реалізує одночасний старт виконання потоків
@@ -324,11 +337,21 @@ namespace lab5_2
             
             launchButton.Click +=  (sender, args) => 
             {
-                if (tasks != null) { Task.WaitAll(tasks.ToArray()); tasks.Clear(); }
+                launchButton.IsEnabled = false;
+                if (tasks != null) { Task<long>.WaitAll(tasks.ToArray());
+                    foreach(Task<long> t in tasks)
+                    {
+                        t.Dispose();
+                    }
 
-                    liveDataThreads.Value = threadCountToLaunch;
+                    tasks.Clear();
 
-                    CreateThreadsAndLaunch(threadCountToLaunch);
+                }
+
+
+                
+                liveDataThreads.Value = threadCountToLaunch;
+                CreateThreadsAndLaunch(threadCountToLaunch);
              
             };
 
