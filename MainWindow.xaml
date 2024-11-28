@@ -1,0 +1,32 @@
+﻿<Window x:Class="lab5_2.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:lab5_2"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    
+    
+    
+    <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <ListBox Grid.Row="0" x:Name="listb" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+        </ListBox>
+        <Grid Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Padding="4" Margin="2" x:Name="launchButton" HorizontalAlignment="Stretch" Content="Click to launch" FontSize="14"/>
+            <TextBlock x:Name="counterText" Margin="6,0,6,0"  Grid.Column= "1" VerticalAlignment="Center" FontSize="18" Text="5" HorizontalAlignment="Stretch"></TextBlock>
+            <Slider Margin="4,0,8,0" Interval="1" Grid.Column="2" x:Name="threadsCountSlider" Minimum="5" Maximum="20" Value="5" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" VerticalAlignment="Center"/>
+        </Grid>
+    </Grid>
+</Window>
+    
+    
